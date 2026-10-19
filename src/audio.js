@@ -1,6 +1,6 @@
 // All sounds are synthesized locally; no audio file or network request is used.
 export class LaundryAudio {
-  constructor() { this.enabled = false; this.active = false; this.context = null; }
+  constructor() { this.enabled = false; this.active = false; this.context = null; this.theme = 'laundry'; this.appliedTheme = null; }
 
   async enable(value) {
     this.enabled = value;
@@ -29,28 +29,47 @@ export class LaundryAudio {
     noise.buffer = buffer;
     noise.loop = true;
     const filter = ctx.createBiquadFilter();
+    this.filter = filter;
     filter.type = 'lowpass';
     filter.frequency.value = 380;
     noise.connect(filter).connect(this.volume);
     noise.start();
     const motor = ctx.createOscillator();
+    this.motor = motor;
     motor.type = 'sine';
     motor.frequency.value = 62;
     const gain = ctx.createGain();
+    this.motorGain = gain;
     gain.gain.value = 0.12;
     motor.connect(gain).connect(this.volume);
     motor.start();
     const wobble = ctx.createOscillator();
+    this.wobble = wobble;
     const wobbleGain = ctx.createGain();
+    this.wobbleGain = wobbleGain;
     wobble.frequency.value = 1.6;
     wobbleGain.gain.value = 0.04;
     wobble.connect(wobbleGain).connect(gain.gain);
     wobble.start();
+    this.setTheme(this.theme);
+  }
+
+  setTheme(theme) {
+    this.theme = theme;
+    if (!this.context || this.appliedTheme === theme) return;
+    this.appliedTheme = theme;
+    const now = this.context.currentTime;
+    const soft = theme === 'aquarium' || theme === 'coffee';
+    this.filter.frequency.setTargetAtTime(theme === 'coffee' ? 1100 : theme === 'aquarium' ? 800 : theme === 'train' ? 650 : theme === 'solar' ? 140 : 380, now, 0.4);
+    this.motor.frequency.setTargetAtTime(soft ? 96 : theme === 'solar' ? 110 : theme === 'train' ? 82 : 62, now, 0.4);
+    this.motorGain.gain.setTargetAtTime(soft ? 0.015 : 0.12, now, 0.4);
+    this.wobbleGain.gain.setTargetAtTime(soft ? 0.006 : 0.04, now, 0.4);
+    this.wobble.frequency.setTargetAtTime(soft ? 0.5 : theme === 'train' ? 3.2 : theme === 'solar' ? 0.15 : 1.6, now, 0.4);
   }
 
   setRunning(value) {
     this.active = value;
-    if (this.context) this.volume.gain.setTargetAtTime(this.enabled && value ? 0.15 : 0, this.context.currentTime, 0.35);
+    if (this.context) this.volume.gain.setTargetAtTime(this.enabled && value ? (this.theme === 'solar' ? 0.08 : 0.15) : 0, this.context.currentTime, 0.35);
   }
 
   chime() {

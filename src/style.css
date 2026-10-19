@@ -27,7 +27,18 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .icon-button:hover { background: #f2e8dc; }
 .icon-button[aria-pressed="true"] { color: var(--coral-dark); background: #fbe2d5; }
 main { max-width: 1150px; padding: 0 35px; margin: auto; }
-.laundry-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(270px, 1fr); gap: 40px; align-items: center; min-height: calc(100dvh - 160px); padding-bottom: 30px; }
+.scene-tabs { display: flex; justify-content: center; gap: 6px; margin: 8px auto 0; }
+.scene-tabs button { display: flex; align-items: center; gap: 8px; padding: 11px 17px; min-height: 44px; border: 1px solid transparent; border-radius: 24px; background: transparent; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.scene-tabs .scene-symbol { width: 18px; height: 18px; stroke-width: 1.5; }
+.theme-short { display: none; }
+.scene-tabs button[aria-pressed="true"] { border-color: var(--line); background: var(--cream); color: var(--ink); box-shadow: 0 3px 10px #71584908; }
+.scene-caption { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .04em; margin: -12px 0 24px; position: relative; }
+body[data-theme="train"] .scene::before { background: #b9d8c7; }
+body[data-theme="solar"] .scene::before { background: #aebed9; }
+body[data-theme="aquarium"] .scene::before { background: #a9d2cf; }
+body[data-theme="coffee"] .scene::before { background: #e0c6a4; }
+body[data-theme]:not([data-theme="laundry"]) .scene { cursor: default; }
+.laundry-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(270px, 1fr); gap: 40px; align-items: center; min-height: calc(100dvh - 212px); padding-bottom: 30px; }
 .scene-section { min-width: 0; }
 .scene { height: min(65vh, 610px); min-height: 410px; width: calc(100% + 70px); margin-left: -35px; position: relative; cursor: pointer; }
 .scene::before { content: ''; width: 70%; height: 66%; position: absolute; top: 14%; left: 15%; background: #f6dfc5; border-radius: 50%; filter: blur(45px); opacity: .35; pointer-events: none; }
@@ -69,6 +80,8 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--coral-da
 #toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translate(-50%, 12px); background: #685344; color: #fff8ed; padding: 12px 20px; border-radius: 12px; font-size: 12px; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 20; width: max-content; max-width: calc(100vw - 32px); text-align: center; line-height: 1.6; }
 #toast.visible { opacity: 1; transform: translate(-50%, 0); }
 @media (max-width: 800px) {
+  .theme-long { display: none; }
+  .theme-short { display: inline; }
   .site-header { padding: 24px 28px; }
   main { padding: 0 24px; }
   .laundry-layout { gap: 8px; grid-template-columns: minmax(0, 1.4fr) minmax(255px, 1fr); }
@@ -84,7 +97,11 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--coral-da
   main { max-width: 470px; padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left)); }
   .laundry-layout { display: flex; flex-direction: column; justify-content: center; gap: 0; min-height: calc(100svh - 72px - env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   .scene-section { width: 100%; }
-  .scene { height: clamp(190px, calc(100svh - 365px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 440px); min-height: 0; width: calc(100% + 32px); margin-left: -16px; }
+  .scene-tabs { gap: 3px; margin: 0 auto; width: 100%; }
+  .scene-tabs button { flex: 1; flex-direction: column; gap: 4px; padding: 8px 5px; border-radius: 14px; font-size: 11px; min-height: 58px; }
+  .scene-caption { font-size: 11px; margin: 0 0 12px; }
+  .laundry-layout { min-height: calc(100svh - 134px - env(safe-area-inset-top)); }
+  .scene { height: clamp(190px, calc(100svh - 449px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 440px); min-height: 0; width: calc(100% + 32px); margin-left: -16px; }
   .timer-section { max-width: 320px; padding-top: 0; }
   .timer-display { font-size: clamp(74px, 22vw, 94px); line-height: 1.1; margin: 8px 0 16px; }
   .mode-tabs { gap: 4px; }
@@ -102,6 +119,8 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--coral-da
   .icon-button { width: 44px; height: 44px; }
   main { max-width: 1050px; padding: 0 max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left)); }
   .laundry-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(250px, 1fr); min-height: calc(100svh - 56px - env(safe-area-inset-top)); gap: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .scene-tabs { margin-top: 0; }
+  .scene-caption { margin: -8px 0 8px; }
   .scene { width: 100%; margin-left: 0; min-height: 0; height: max(230px, calc(100svh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
   .timer-section { max-width: 300px; }
   .mode-tabs button { min-height: 44px; font-size: 12px; }

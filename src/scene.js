@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { createTrainWorld } from './train-world.js';
+import { createSolarWorld } from './solar-world.js';
+import { createAquariumWorld } from './aquarium-world.js';
+import { createCoffeeWorld } from './coffee-world.js';
 
 const colors = { cream: 0xffefd7, coral: 0xef806a, red: 0xef5942, green: 0x77905b, dark: 0x563a31, towel: 0xf3b2a0 };
 
@@ -10,6 +14,7 @@ export function createLaundryScene(container, readState, onPoke) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.shadowMap.enabled = true;
+  renderer.localClippingEnabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.92;
@@ -216,6 +221,20 @@ export function createLaundryScene(container, readState, onPoke) {
   const fill = new THREE.DirectionalLight(0xffd9c9, 0.8);
   fill.position.set(4, 3, -2);
   scene.add(fill);
+  const laundryWorld = new THREE.Group();
+  laundryWorld.add(machine, props, floor, shadowPlane);
+  const worlds = {
+    train: createTrainWorld(), solar: createSolarWorld(),
+    aquarium: createAquariumWorld(), coffee: createCoffeeWorld(),
+  };
+  const views = {
+    train: { position: [2.7, 4.8, 11.5], target: [0, 1.8, 0] },
+    solar: { position: [0.8, 7, 11.5], target: [0, 0.65, 0] },
+    aquarium: { position: [3.6, 4.4, 11.5], target: [0, 1.6, 0] },
+    coffee: { position: [3.6, 4.4, 11.5], target: [0, 1.65, 0] },
+  };
+  scene.add(laundryWorld, ...Object.values(worlds).map(world => world.root));
+  let currentTheme;
   let pointer = { x: 0, y: 0 };
   let targetPointer = { x: 0, y: 0 };
   let pokeAt = -100;
@@ -240,6 +259,12 @@ export function createLaundryScene(container, readState, onPoke) {
     const mobilePortrait = window.matchMedia('(max-width: 620px) and (orientation: portrait)').matches;
     camera.zoom = mobilePortrait ? 1.25 : width < 450 ? 1.05 : 1.15;
     floor.scale.setScalar(mobilePortrait ? 0.84 : 1);
+    const view = views[readState().theme];
+    if (view) {
+      camera.position.set(...view.position);
+      camera.lookAt(...view.target);
+      camera.zoom = Math.min(1.03, camera.aspect / 1.15);
+    }
     camera.updateProjectionMatrix();
   }
   const observer = new ResizeObserver(resize);
@@ -249,7 +274,7 @@ export function createLaundryScene(container, readState, onPoke) {
     targetPointer = { x: (event.clientX - rect.left) / rect.width - 0.5, y: (event.clientY - rect.top) / rect.height - 0.5 };
   }
   function leave() { targetPointer = { x: 0, y: 0 }; }
-  function poke() { if (!readState().motion || reducedMotion.matches) return; pokeAt = time; onPoke(); }
+  function poke() { if (currentTheme !== 'laundry' || !readState().motion || reducedMotion.matches) return; pokeAt = time; onPoke(); }
   container.addEventListener('pointermove', move);
   container.addEventListener('pointerleave', leave);
   container.addEventListener('click', poke);
@@ -277,6 +302,14 @@ export function createLaundryScene(container, readState, onPoke) {
     const state = readState();
     const motion = state.motion && !reducedMotion.matches;
     const active = state.running || state.mode === 'zen';
+    const theme = state.theme || 'laundry';
+    if (theme !== currentTheme) {
+      currentTheme = theme;
+      laundryWorld.visible = theme === 'laundry';
+      Object.entries(worlds).forEach(([key, world]) => { world.root.visible = key === theme; });
+      resize();
+    }
+    worlds[theme]?.update(delta, active && motion);
     speed = THREE.MathUtils.damp(speed, active && motion ? washSpeed : 0, 2, delta);
     const runningIntensity = speed / washSpeed;
     rotation += speed * delta;
@@ -291,8 +324,10 @@ export function createLaundryScene(container, readState, onPoke) {
     pointer.x = THREE.MathUtils.damp(pointer.x, motion ? targetPointer.x : 0, 3, delta);
     pointer.y = THREE.MathUtils.damp(pointer.y, motion ? targetPointer.y : 0, 3, delta);
     machine.rotation.y = 0.08 + pointer.x * 0.15;
-    camera.position.y = 4.4 + pointer.y * 0.14;
-    camera.lookAt(-0.1, 1.7, 0);
+    if (theme === 'laundry') {
+      camera.position.y = 4.4 + pointer.y * 0.14;
+      camera.lookAt(-0.1, 1.7, 0);
+    }
     renderScreen(state.display, active, state.mode === 'zen');
     renderer.render(scene, camera);
   }
@@ -319,8 +354,11 @@ export function createLaundryScene(container, readState, onPoke) {
       const geometries = new Set();
       scene.traverse(object => { if (object.geometry) geometries.add(object.geometry); });
       geometries.forEach(g => g.dispose());
-      materials.forEach(m => m.dispose());
-      shadowPlane.material.dispose();
+      const usedMaterials = new Set(materials);
+      scene.traverse(object => {
+        if (object.material) (Array.isArray(object.material) ? object.material : [object.material]).forEach(m => usedMaterials.add(m));
+      });
+      usedMaterials.forEach(m => m.dispose());
       screenTexture.dispose();
       environment.dispose();
       renderer.dispose();

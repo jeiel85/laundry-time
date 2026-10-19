@@ -25,7 +25,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Test timer
+      - name: Test timer and scenes
         run: npm test
       - name: Build for GitHub Pages
         run: npm run build -- --base /laundry-time/
