@@ -237,7 +237,9 @@ export function createLaundryScene(container, readState, onPoke) {
     camera.aspect = width / height;
     camera.position.set(-5.5, 4.4, 9.7);
     camera.lookAt(-0.1, 1.7, 0);
-    camera.zoom = width < 450 ? 1.05 : 1.15;
+    const mobilePortrait = window.matchMedia('(max-width: 620px) and (orientation: portrait)').matches;
+    camera.zoom = mobilePortrait ? 1.25 : width < 450 ? 1.05 : 1.15;
+    floor.scale.setScalar(mobilePortrait ? 0.84 : 1);
     camera.updateProjectionMatrix();
   }
   const observer = new ResizeObserver(resize);
