@@ -5,6 +5,8 @@ import { createTrainWorld } from './train-world.js';
 import { createSolarWorld } from './solar-world.js';
 import { createAquariumWorld } from './aquarium-world.js';
 import { createCoffeeWorld } from './coffee-world.js';
+import { createOvenWorld } from './oven-world.js';
+import { createRainWorld } from './rain-world.js';
 
 const colors = { cream: 0xffefd7, coral: 0xef806a, red: 0xef5942, green: 0x77905b, dark: 0x563a31, towel: 0xf3b2a0 };
 
@@ -226,15 +228,20 @@ export function createLaundryScene(container, readState, onPoke) {
   const worlds = {
     train: createTrainWorld(), solar: createSolarWorld(),
     aquarium: createAquariumWorld(), coffee: createCoffeeWorld(),
+    oven: createOvenWorld(), rain: createRainWorld(),
   };
   const views = {
     train: { position: [2.7, 4.8, 11.5], target: [0, 1.8, 0] },
     solar: { position: [0.8, 7, 11.5], target: [0, 0.65, 0] },
     aquarium: { position: [3.6, 4.4, 11.5], target: [0, 1.6, 0] },
     coffee: { position: [3.6, 4.4, 11.5], target: [0, 1.65, 0] },
+    oven: { position: [3.6, 4.4, 11.5], target: [0, 1.6, 0] },
+    rain: { position: [2.7, 4.4, 11.5], target: [0, 1.8, 0] },
   };
   scene.add(laundryWorld, ...Object.values(worlds).map(world => world.root));
   let currentTheme;
+  let previousMode;
+  let previousProgress;
   let pointer = { x: 0, y: 0 };
   let targetPointer = { x: 0, y: 0 };
   let pokeAt = -100;
@@ -263,7 +270,7 @@ export function createLaundryScene(container, readState, onPoke) {
     if (view) {
       camera.position.set(...view.position);
       camera.lookAt(...view.target);
-      camera.zoom = Math.min(1.03, camera.aspect / 1.15);
+      camera.zoom = Math.min(mobilePortrait ? 1.6 : 1.03, camera.aspect / 1.15);
     }
     camera.updateProjectionMatrix();
   }
@@ -303,13 +310,19 @@ export function createLaundryScene(container, readState, onPoke) {
     const motion = state.motion && !reducedMotion.matches;
     const active = state.running || state.mode === 'zen';
     const theme = state.theme || 'laundry';
+    // Reset/restore the bread's static state without advancing paused animation.
+    if (theme === 'oven' && (theme !== currentTheme || state.mode !== previousMode || (!state.running && state.progress !== previousProgress))) {
+      worlds.oven.setProgress(state.progress);
+    }
+    previousMode = state.mode;
+    previousProgress = state.progress;
     if (theme !== currentTheme) {
       currentTheme = theme;
       laundryWorld.visible = theme === 'laundry';
       Object.entries(worlds).forEach(([key, world]) => { world.root.visible = key === theme; });
       resize();
     }
-    worlds[theme]?.update(delta, active && motion);
+    worlds[theme]?.update(delta, active && motion, state.progress);
     speed = THREE.MathUtils.damp(speed, active && motion ? washSpeed : 0, 2, delta);
     const runningIntensity = speed / washSpeed;
     rotation += speed * delta;

@@ -18,6 +18,8 @@ const icons = {
   solar: '<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-30 12 12)"/><circle cx="19" cy="6" r="1.5" fill="var(--paper)"/>',
   aquarium: '<path d="M3 4h18v16H3zM3 7h18m-7 7q-4-5-7 0 3 5 7 0l3 2v-4zM19 10h.01"/>',
   coffee: '<path d="M5 9h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zm12 1h2a3 3 0 0 1 0 6h-2M3 23h17M8 5V2m5 3V2"/>',
+  oven: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 8h18M7 6h.01M11 6h.01M7 11h10v7H7zM9 14h6"/>',
+  rain: '<rect x="3" y="2" width="18" height="20" rx="2"/><path d="M12 2v20M3 12h18M7 6l-1 3m11-3-1 3M8 16l-1 3m10-3-1 3"/>',
 };
 const icon = (name, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
 const tomato = (cls = '') => `<svg class="tomato ${cls}" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13C7 5 3 24 9 35c5 10 25 11 31-1 6-13-2-27-16-21Z" fill="currentColor"/><path d="m24 16-9-7 8 2 3-7 2 8 9-2-7 7-3-3-3 5Z" fill="#7e9365"/><path d="M15 24q1-5 5-5" fill="none" stroke="#fff4df" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg>`;
@@ -28,6 +30,8 @@ const themes = {
   solar: { name: '작은 태양계', short: '태양계', caption: '저마다의 궤도, 저마다의 속도.', description: '웃는 태양과 여덟 행성, 지구를 도는 달이 있는 작은 3D 태양계 모형', sound: '우주', active: '공전 중' },
   aquarium: { name: '작은 어항', short: '어항', caption: '가만히 바라보는, 물빛의 시간.', description: '수초 사이를 헤엄치는 세 물고기와 작은 기포가 있는 3D 어항', sound: '물', active: '물멍 중' },
   coffee: { name: '커피 한 잔', short: '커피', caption: '한 방울씩, 여유가 내려와요.', description: '드리퍼에서 커피가 떨어지고 잔에서 김이 피어오르는 작은 3D 커피 테이블', sound: '커피', active: '커피 내리는 중' },
+  oven: { name: '작은 오븐', short: '오븐', caption: '천천히 익어가는, 따뜻한 시간.', description: '따뜻한 불빛 아래 빵이 구워지는 작은 3D 오븐', sound: '오븐', active: '빵 굽는 중' },
+  rain: { name: '비 오는 창가', short: '창가', caption: '빗소리에 기대어, 잠깐 쉬어가요.', description: '나무 창틀과 화분 너머 유리를 따라 빗방울이 흐르는 작은 3D 창가', sound: '빗', active: '빗소리와 함께' },
 };
 let theme = 'laundry';
 
@@ -208,7 +212,10 @@ document.addEventListener('keydown', event => {
 });
 let scene;
 try {
-  scene = createLaundryScene($('#scene'), () => ({ ...state, theme, motion: settings.motion, display: formatTime(state.remaining) }), () => {
+  scene = createLaundryScene($('#scene'), () => ({
+    ...state, theme, motion: settings.motion, display: formatTime(state.remaining),
+    progress: state.mode === 'zen' ? null : Math.max(0, Math.min(1, 1 - state.remaining / (settings[state.mode] * 60))),
+  }), () => {
     toast('앗, 간지러워요! 조금만 더 돌고 올게요.');
   });
   $('#scene-loader').remove();

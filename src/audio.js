@@ -1,4 +1,14 @@
 // All sounds are synthesized locally; no audio file or network request is used.
+const soundProfiles = {
+  laundry: { cutoff: 380, motor: 62, level: 0.12, depth: 0.04, pulse: 1.6, volume: 0.15 },
+  train: { cutoff: 650, motor: 82, level: 0.12, depth: 0.04, pulse: 3.2, volume: 0.15 },
+  solar: { cutoff: 140, motor: 110, level: 0.12, depth: 0.04, pulse: 0.15, volume: 0.08 },
+  aquarium: { cutoff: 800, motor: 96, level: 0.015, depth: 0.006, pulse: 0.5, volume: 0.15 },
+  coffee: { cutoff: 1100, motor: 96, level: 0.015, depth: 0.006, pulse: 0.5, volume: 0.15 },
+  oven: { cutoff: 300, motor: 70, level: 0.045, depth: 0.008, pulse: 0.8, volume: 0.11 },
+  rain: { cutoff: 3200, motor: 96, level: 0, depth: 0, pulse: 0.25, volume: 0.21 },
+};
+
 export class LaundryAudio {
   constructor() { this.enabled = false; this.active = false; this.context = null; this.theme = 'laundry'; this.appliedTheme = null; }
 
@@ -59,17 +69,18 @@ export class LaundryAudio {
     if (!this.context || this.appliedTheme === theme) return;
     this.appliedTheme = theme;
     const now = this.context.currentTime;
-    const soft = theme === 'aquarium' || theme === 'coffee';
-    this.filter.frequency.setTargetAtTime(theme === 'coffee' ? 1100 : theme === 'aquarium' ? 800 : theme === 'train' ? 650 : theme === 'solar' ? 140 : 380, now, 0.4);
-    this.motor.frequency.setTargetAtTime(soft ? 96 : theme === 'solar' ? 110 : theme === 'train' ? 82 : 62, now, 0.4);
-    this.motorGain.gain.setTargetAtTime(soft ? 0.015 : 0.12, now, 0.4);
-    this.wobbleGain.gain.setTargetAtTime(soft ? 0.006 : 0.04, now, 0.4);
-    this.wobble.frequency.setTargetAtTime(soft ? 0.5 : theme === 'train' ? 3.2 : theme === 'solar' ? 0.15 : 1.6, now, 0.4);
+    const profile = soundProfiles[theme] || soundProfiles.laundry;
+    this.filter.frequency.setTargetAtTime(profile.cutoff, now, 0.4);
+    this.motor.frequency.setTargetAtTime(profile.motor, now, 0.4);
+    this.motorGain.gain.setTargetAtTime(profile.level, now, 0.4);
+    this.wobbleGain.gain.setTargetAtTime(profile.depth, now, 0.4);
+    this.wobble.frequency.setTargetAtTime(profile.pulse, now, 0.4);
   }
 
   setRunning(value) {
     this.active = value;
-    if (this.context) this.volume.gain.setTargetAtTime(this.enabled && value ? (this.theme === 'solar' ? 0.08 : 0.15) : 0, this.context.currentTime, 0.35);
+    const volume = (soundProfiles[this.theme] || soundProfiles.laundry).volume;
+    if (this.context) this.volume.gain.setTargetAtTime(this.enabled && value ? volume : 0, this.context.currentTime, 0.35);
   }
 
   chime() {
