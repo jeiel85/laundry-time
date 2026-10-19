@@ -2,6 +2,8 @@
 
 크림색 작은 세탁기와 토마토 친구들이 함께하는 웹 뽀모도로 타이머.
 
+**[라이브 데모 열기](https://jeiel85.github.io/laundry-time/)**
+
 ## 실행
 
 Node.js 20.19+ 또는 22.12+가 필요합니다.
@@ -12,6 +14,10 @@ npm run dev
 ```
 
 터미널의 로컬 주소로 접속합니다. 배포용 정적 파일은 `npm run build`로 `dist/`에 생성합니다. `npm run preview`로 배포 빌드를 확인하고 `npm test`로 타이머 로직을 검증합니다.
+
+## 라이브 데모 배포
+
+`main`에 푸시하면 GitHub Actions가 의존성 설치 → 타이머 테스트 → 빌드 → GitHub Pages 배포를 수행합니다. `.github/workflows/pages.yml`의 `workflow_dispatch`로 수동 배포도 가능합니다. GitHub Pages용 빌드만 `--base /laundry-time/`을 지정하므로 로컬 실행과 다른 호스팅의 기본 빌드는 그대로 사용할 수 있습니다.
 
 ## 사용
 
