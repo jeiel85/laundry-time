@@ -219,6 +219,9 @@ export function createLaundryScene(container, readState, onPoke) {
   let pointer = { x: 0, y: 0 };
   let targetPointer = { x: 0, y: 0 };
   let pokeAt = -100;
+  // Tumble washing typically runs at 30–45 RPM (NXP AN3234, section 4).
+  // 40 RPM = one revolution every 1.5 seconds, in every timer mode.
+  const washSpeed = 40 * Math.PI * 2 / 60;
   let speed = 0;
   let rotation = 0;
   let time = 0;
@@ -266,20 +269,21 @@ export function createLaundryScene(container, readState, onPoke) {
   function animate(now) {
     if (disposed) return;
     frame = requestAnimationFrame(animate);
-    const delta = Math.min((now - last) / 1000, 0.06);
+    const delta = Math.min((now - last) / 1000, 0.25);
     last = now;
     time += delta;
     const state = readState();
     const motion = state.motion && !reducedMotion.matches;
     const active = state.running || state.mode === 'zen';
-    speed = THREE.MathUtils.damp(speed, active && motion ? (state.mode === 'focus' ? 0.65 : 0.36) : 0, 2, delta);
+    speed = THREE.MathUtils.damp(speed, active && motion ? washSpeed : 0, 2, delta);
+    const runningIntensity = speed / washSpeed;
     rotation += speed * delta;
     laundry.rotation.z = -rotation;
     tomatoes.forEach(({ group, angle }, i) => {
-      group.rotation.z = rotation * 0.72 + angle + (motion ? Math.sin(time * 2 + i) * speed * 0.12 : 0);
+      group.rotation.z = rotation * 0.72 + angle + (motion ? Math.sin(time * 2 + i) * runningIntensity * 0.08 : 0);
     });
     const bump = motion ? Math.max(0, 1 - (time - pokeAt) / 1.6) : 0;
-    const wobble = motion ? (speed * 0.012 + bump * 0.045) : 0;
+    const wobble = motion ? (runningIntensity * 0.008 + bump * 0.045) : 0;
     machine.rotation.z = Math.sin(time * 17) * wobble + Math.sin(time * 10.5) * wobble * 0.3;
     machine.position.y = Math.abs(Math.sin(time * 17)) * wobble * 0.22;
     pointer.x = THREE.MathUtils.damp(pointer.x, motion ? targetPointer.x : 0, 3, delta);
