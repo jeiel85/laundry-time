@@ -6,3 +6,4 @@ dist/
 *.log
 *.png
 !docs/screenshots/*.png
+!public/*.png
