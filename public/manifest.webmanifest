@@ -1,0 +1,41 @@
+{
+  "id": "./",
+  "name": "laundry time — 마음까지 보송하게",
+  "short_name": "laundry time",
+  "description": "세탁소, 기차, 태양계, 어항, 커피, 오븐, 비 오는 창가. 좋아하는 일곱 가지 3D 풍경과 함께 집중하고 느긋하게 쉬는 뽀모도로 타이머.",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fbf5ed",
+  "theme_color": "#fbf5ed",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

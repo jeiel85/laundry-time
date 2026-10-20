@@ -1,6 +1,7 @@
 import './style.css';
 import { createLaundryScene } from './scene.js';
 import { LaundryAudio } from './audio.js';
+import { createInstallController, registerServiceWorker } from './pwa.js';
 import { DEFAULT_SETTINGS, STORAGE_KEY, createState, formatTime, localDay, restoreState, startTimer, pauseTimer, updateTimer, selectMode } from './timer.js';
 
 const icons = {
@@ -8,6 +9,7 @@ const icons = {
   pause: '<path d="M8 5v14M16 5v14" stroke-width="4"/>',
   reset: '<path d="M3 10a9 9 0 1 1 2.7 8M3 4v6h6"/>',
   settings: '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--paper)"/><circle cx="15" cy="17" r="3" fill="var(--paper)"/>',
+  install: '<path d="M12 4v11m-4-4 4 4 4-4M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/>',
   sound: '<path d="m11 5-6 4H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16"/>',
   mute: '<path d="m11 5-6 4H2v6h3l6 4zM16 9l6 6m0-6-6 6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
@@ -53,6 +55,7 @@ document.querySelector('#app').innerHTML = `
   <header class="site-header">
     <a class="wordmark" href="./" aria-label="laundry time 홈">${tomato()}<span>laundry time<span class="wordmark-dot">.</span></span></a>
     <div class="header-actions">
+      <button class="icon-button install-button" id="install-button" aria-label="앱 설치" title="앱 설치" hidden>${icon('install')}</button>
       <button class="icon-button sound-button" aria-label="세탁기 소리 켜기" aria-pressed="false">${icon('mute')}</button>
       <button class="icon-button" id="settings-button" aria-label="타이머 설정">${icon('settings')}</button>
     </div>
@@ -103,12 +106,25 @@ document.querySelector('#app').innerHTML = `
 const $ = selector => document.querySelector(selector);
 const dialog = $('#settings-dialog');
 const form = $('#settings-form');
+const installButton = $('#install-button');
 function toast(message) {
   $('#toast').textContent = message;
   $('#toast').classList.add('visible');
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => $('#toast').classList.remove('visible'), 4200);
 }
+const installController = createInstallController({
+  onStateChange({ canInstall }) {
+    installButton.hidden = !canInstall;
+  },
+  onInstalled() {
+    toast('앱을 설치했어요. 홈 화면이나 바탕화면에서 바로 열 수 있어요.');
+  },
+});
+installButton.addEventListener('click', () => {
+  installController.promptInstall();
+});
+registerServiceWorker();
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, state, theme })); }
   catch { storageAvailable = false; }
@@ -234,5 +250,5 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { finished(updateTimer(state, settings)); render(); }
 });
 window.addEventListener('pagehide', save);
-if (import.meta.hot) import.meta.hot.dispose(() => { clearInterval(interval); scene?.dispose(); audio.context?.close(); });
+if (import.meta.hot) import.meta.hot.dispose(() => { clearInterval(interval); installController.dispose(); scene?.dispose(); audio.context?.close(); });
 render(); save(); finished(completedOnRestore);
