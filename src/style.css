@@ -120,6 +120,15 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--coral-da
   dialog { padding: 22px; }
   .dialog-heading { margin-bottom: 20px; }
 }
+/* Narrow phones: keep the wordmark on one line next to the header actions (install, sound, settings, GitHub). */
+@media (max-width: 400px) {
+  .wordmark { font-size: 21px; white-space: nowrap; }
+  .icon-button { width: 40px; height: 40px; }
+}
+/* When the install action appears on the narrowest screens, it takes the GitHub link's slot. */
+@media (max-width: 360px) {
+  .site-header:has(#install-button:not([hidden])) .github-link { display: none; }
+}
 @media (max-width: 950px) and (max-height: 500px) and (orientation: landscape) {
   .site-header { padding: calc(6px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 6px max(20px, env(safe-area-inset-left)); }
   .icon-button { width: 44px; height: 44px; }
