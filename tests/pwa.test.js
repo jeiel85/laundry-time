@@ -8,6 +8,8 @@ test('web app manifest defines standalone display and valid local icons', () => 
   const publicDir = resolve(process.cwd(), 'public');
   const manifest = JSON.parse(readFileSync(resolve(publicDir, 'manifest.webmanifest'), 'utf8'));
 
+  // "./"는 manifest 위치가 아니라 출처(jeiel85.github.io) 기준으로 풀려 같은 출처의 다른 앱과 같은 앱이 된다(DECISIONS.md).
+  assert.equal(manifest.id, '/laundry-time/');
   assert.equal(manifest.display, 'standalone');
   assert.equal(manifest.start_url, './');
   assert.equal(manifest.scope, './');
